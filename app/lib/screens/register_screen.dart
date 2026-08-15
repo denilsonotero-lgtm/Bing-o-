@@ -66,9 +66,11 @@ final PlayerService playerService = PlayerService();
       if (!mounted) return;
 
     if (response.user != null) {
-  await playerService.createPlayer(
-    name: name,
-  );
+
+      await playerService.createPlayer(
+  userName: name,
+  displayName: name,
+);
 
   if (!mounted) return;
 
