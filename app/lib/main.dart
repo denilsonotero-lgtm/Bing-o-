@@ -7,10 +7,14 @@ import 'supabase_config.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: SupabaseConfig.url,
-    anonKey: SupabaseConfig.anonKey,
-  );
+  try {
+    await Supabase.initialize(
+      url: SupabaseConfig.url,
+      anonKey: SupabaseConfig.anonKey,
+    );
+  } catch (e) {
+    debugPrint('Erro na conexão inicial com o Supabase: $e');
+  }
 
   runApp(const BingaoApp());
 }
@@ -20,14 +24,20 @@ class BingaoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final session = Supabase.instance.client.auth.currentSession;
+    final initialRoute = session != null ? AppRoutes.dashboard : AppRoutes.login;
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'BINGÃO',
       theme: ThemeData(
         useMaterial3: true,
-        brightness: Brightness.light,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.light,
+        ),
       ),
-      initialRoute: AppRoutes.login,
+      initialRoute: initialRoute,
       routes: AppRoutes.routes,
     );
   }
