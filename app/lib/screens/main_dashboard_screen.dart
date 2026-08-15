@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../app_routes.dart';
 import 'live_round_screen.dart';
 import 'my_cards_screen.dart';
 import 'settings_screen.dart';
@@ -23,15 +25,6 @@ class _MainDashboardScreenState
     SettingsScreen(),
   ];
 
-  void openPage(Widget page) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => page,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,12 +46,8 @@ class _MainDashboardScreenState
             label: 'Início',
           ),
           NavigationDestination(
-            icon: Icon(
-              Icons.confirmation_number_outlined,
-            ),
-            selectedIcon: Icon(
-              Icons.confirmation_number,
-            ),
+            icon: Icon(Icons.confirmation_number_outlined),
+            selectedIcon: Icon(Icons.confirmation_number),
             label: 'Cartelas',
           ),
           NavigationDestination(
@@ -82,28 +71,27 @@ class _DashboardHome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+    final userEmail = user?.email ?? 'Jogador';
+
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Olá! 👋',
-                        style: TextStyle(
-                          fontSize: 16,
-                        ),
+                        'Olá, $userEmail! 👋',
+                        style: const TextStyle(fontSize: 16),
                       ),
-                      SizedBox(height: 4),
-                      Text(
+                      const SizedBox(height: 4),
+                      const Text(
                         'BINGÃO',
                         style: TextStyle(
                           fontSize: 28,
@@ -113,15 +101,13 @@ class _DashboardHome extends StatelessWidget {
                     ],
                   ),
                 ),
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 24,
                   child: Icon(Icons.person),
                 ),
               ],
             ),
-
             const SizedBox(height: 24),
-
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -134,8 +120,7 @@ class _DashboardHome extends StatelessWidget {
                     const SizedBox(width: 16),
                     const Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Créditos virtuais'),
                           SizedBox(height: 4),
@@ -151,23 +136,18 @@ class _DashboardHome extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                      ),
+                      icon: const Icon(Icons.add_circle_outline),
                     ),
                   ],
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Row(
                       children: [
@@ -182,9 +162,7 @@ class _DashboardHome extends StatelessWidget {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 16),
-
                     const Text(
                       '🎱 Rodada #001284',
                       style: TextStyle(
@@ -192,15 +170,9 @@ class _DashboardHome extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 8),
-
-                    const Text(
-                      '128 participantes',
-                    ),
-
+                    const Text('128 participantes'),
                     const SizedBox(height: 16),
-
                     SizedBox(
                       width: double.infinity,
                       child: FilledButton.icon(
@@ -208,26 +180,19 @@ class _DashboardHome extends StatelessWidget {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  const RoundEntryScreen(),
+                              builder: (_) => const RoundEntryScreen(),
                             ),
                           );
                         },
-                        icon: const Icon(
-                          Icons.play_arrow,
-                        ),
-                        label: const Text(
-                          'ENTRAR NA RODADA',
-                        ),
+                        icon: const Icon(Icons.play_arrow),
+                        label: const Text('ENTRAR NA RODADA'),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
             Row(
               children: [
                 Expanded(
@@ -275,10 +240,7 @@ class _QuickAction extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              Icon(
-                icon,
-                size: 32,
-              ),
+              Icon(icon, size: 32),
               const SizedBox(height: 8),
               Text(title),
             ],
