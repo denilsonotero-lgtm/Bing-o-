@@ -1,6 +1,6 @@
                import 'package:flutter/material.dart';
 import '../auth_service.dart';
-
+import '../player_service.dart';
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -15,7 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final confirmPasswordController = TextEditingController();
 
   final AuthService authService = AuthService();
-
+final PlayerService playerService = PlayerService();
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
   bool loading = false;
@@ -65,13 +65,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      if (response.user != null) {
-        showMessage(
-          'Cadastro realizado! Verifique seu e-mail se necessário.',
-        );
+    if (response.user != null) {
+  await playerService.createPlayer(
+    name: name,
+  );
 
-        Navigator.pop(context);
-      }
+  if (!mounted) return;
+
+  showMessage(
+    'Cadastro realizado com sucesso!',
+  );
+
+  Navigator.pop(context);
+    }  
+      
     } catch (error) {
       if (!mounted) return;
 
