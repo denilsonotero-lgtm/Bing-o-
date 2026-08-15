@@ -15,10 +15,11 @@ class PlayerService {
     }
 
     await _supabase.from('players').insert({
-      'user_name': userName,
-      'display_name': displayName,
-      'auth_uuid': user.id,
-    });
+  'user_name': userName,
+  'display_name': displayName,
+  'virtual_credits': 0,
+  'auth_uuid': user.id,
+});
   }
 
   Future<Map<String, dynamic>?> getMyPlayer() async {
