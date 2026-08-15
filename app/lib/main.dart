@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(const BingaoApp());
@@ -21,30 +22,7 @@ class BingaoApp extends StatelessWidget {
         useMaterial3: true,
       ),
       themeMode: ThemeMode.system,
-      home: const BingaoHomePage(),
-    );
-  }
-}
-
-class BingaoHomePage extends StatelessWidget {
-  const BingaoHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('🎱 BINGÃO'),
-        centerTitle: true,
-      ),
-      body: const Center(
-        child: Text(
-          'Bem-vindo ao BINGÃO!',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
+      home: const HomeScreen(),
     );
   }
 }
