@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+               import 'package:flutter/material.dart';
+import '../auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -9,45 +10,86 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final nameController = TextEditingController();
-  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
+  final AuthService authService = AuthService();
+
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
+  bool loading = false;
 
   @override
   void dispose() {
     nameController.dispose();
-    usernameController.dispose();
+    emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
   }
 
-  void showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
+  Future<void> register() async {
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+    final confirmPassword = confirmPasswordController.text;
 
-  void register() {
-    if (nameController.text.trim().isEmpty ||
-        usernameController.text.trim().isEmpty ||
-        passwordController.text.isEmpty ||
-        confirmPasswordController.text.isEmpty) {
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       showMessage('Preencha todos os campos.');
       return;
     }
 
-    if (passwordController.text !=
-        confirmPasswordController.text) {
+    if (password != confirmPassword) {
       showMessage('As senhas não coincidem.');
       return;
     }
 
-    showMessage(
-      'Cadastro será conectado ao Supabase na próxima etapa.',
+    if (password.length < 6) {
+      showMessage('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    setState(() {
+      loading = true;
+    });
+
+    try {
+      final response = await authService.register(
+        email: email,
+        password: password,
+      );
+
+      if (!mounted) return;
+
+      if (response.user != null) {
+        showMessage(
+          'Cadastro realizado! Verifique seu e-mail se necessário.',
+        );
+
+        Navigator.pop(context);
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      showMessage(
+        'Não foi possível criar a conta. Verifique os dados.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
+  void showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -95,10 +137,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
 
               TextField(
-                controller: usernameController,
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  labelText: 'Usuário',
-                  prefixIcon: Icon(Icons.account_circle),
+                  labelText: 'E-mail',
+                  prefixIcon: Icon(Icons.email_outlined),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -157,9 +200,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
               SizedBox(
                 height: 52,
                 child: FilledButton.icon(
-                  onPressed: register,
-                  icon: const Icon(Icons.person_add),
-                  label: const Text('CRIAR CONTA'),
+                  onPressed: loading ? null : register,
+                  icon: loading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.person_add),
+                  label: Text(
+                    loading
+                        ? 'CRIANDO...'
+                        : 'CRIAR CONTA',
+                  ),
                 ),
               ),
             ],
@@ -168,4 +223,4 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-}
+}           
