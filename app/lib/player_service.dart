@@ -5,7 +5,8 @@ class PlayerService {
       Supabase.instance.client;
 
   Future<void> createPlayer({
-    required String name,
+    required String userName,
+    required String displayName,
   }) async {
     final user = _supabase.auth.currentUser;
 
@@ -14,8 +15,9 @@ class PlayerService {
     }
 
     await _supabase.from('players').insert({
-      'auth_user_id': user.id,
-      'name': name,
+      'user_name': userName,
+      'display_name': displayName,
+      'auth_uuid': user.id,
     });
   }
 
@@ -29,7 +31,7 @@ class PlayerService {
     final result = await _supabase
         .from('players')
         .select()
-        .eq('auth_user_id', user.id)
+        .eq('auth_uuid', user.id)
         .maybeSingle();
 
     return result;
