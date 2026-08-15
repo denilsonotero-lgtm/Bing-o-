@@ -22,9 +22,10 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Compilar APK
+      - name: Recriar arquivos do Android e Compilar APK
         run: |
           cd app
+          flutter create --platforms=android .
           flutter pub get
           flutter build apk --release
 
