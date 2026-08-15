@@ -14,5 +14,5 @@ class AppRoutes {
       register: (_) => const RegisterScreen(),
       dashboard: (_) => const MainDashboardScreen(),
     };
-  };
+  }
 }
