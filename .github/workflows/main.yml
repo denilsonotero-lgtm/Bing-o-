@@ -26,6 +26,7 @@ jobs:
         run: |
           cd app
           flutter create --platforms=android .
+          sed -i '/<application/i \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>' android/app/src/main/AndroidManifest.xml
           flutter pub get
           flutter build apk --release
 
