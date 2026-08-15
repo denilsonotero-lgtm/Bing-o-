@@ -1,4 +1,5 @@
-                import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import '../app_routes.dart';
 import '../auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -48,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.user != null) {
         Navigator.pushReplacementNamed(
           context,
-          '/dashboard',
+          AppRoutes.dashboard,
         );
       }
     } catch (error) {
@@ -85,9 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   '🎱',
                   style: TextStyle(fontSize: 80),
                 ),
-
                 const SizedBox(height: 8),
-
                 const Text(
                   'BINGÃO',
                   style: TextStyle(
@@ -96,21 +95,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     letterSpacing: 2,
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
                 Text(
                   'Entre para participar das rodadas',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurfaceVariant,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
-
                 const SizedBox(height: 35),
-
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -120,9 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 TextField(
                   controller: passwordController,
                   obscureText: obscurePassword,
@@ -138,16 +129,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       onPressed: () {
                         setState(() {
-                          obscurePassword =
-                              !obscurePassword;
+                          obscurePassword = !obscurePassword;
                         });
                       },
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -159,6 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
+                              color: Colors.white,
                             ),
                           )
                         : const Icon(Icons.login),
@@ -167,14 +156,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 TextButton(
                   onPressed: () {
                     Navigator.pushNamed(
                       context,
-                      '/register',
+                      AppRoutes.register,
                     );
                   },
                   child: const Text(
@@ -188,4 +175,4 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-}    
+}
