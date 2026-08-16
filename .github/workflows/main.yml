@@ -26,7 +26,7 @@ jobs:
         run: flutter create . --platforms=android
         working-directory: app
 
-      - name: Fix Android Manifest (Internet Permission + Embedding v2)
+      - name: Fix Android Manifest (Internet Permission, Embedding v2 & Deep Link)
         run: |
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
           <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -52,6 +52,13 @@ jobs:
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN"/>
                           <category android:name="android.intent.category.LAUNCHER"/>
+                      </intent-filter>
+                      <!-- ADICIONADO: Filtro para capturar o link do e-mail -->
+                      <intent-filter>
+                          <action android:name="android.intent.action.VIEW" />
+                          <category android:name="android.intent.category.DEFAULT" />
+                          <category android:name="android.intent.category.BROWSABLE" />
+                          <data android:scheme="bingo" android:host="login-callback" />
                       </intent-filter>
                   </activity>
                   <meta-data
