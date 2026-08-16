@@ -78,7 +78,7 @@ class QrPaymentScreen extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            // Botão para simular confirmação ou retornar
+            // Botão para retornar ao jogo
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -278,7 +278,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     await _flutterTts.setSpeechRate(0.5);
   }
 
-  // Método auxiliar para navegar até a Tela do QR Code
   void _navigateToQrScreen() {
     Navigator.push(
       context,
@@ -460,15 +459,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   const Text('Configurações & Perfil', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const Divider(),
-                  // SUBMENU PARA IR PARA A TELA DE QR CODE
                   ListTile(
                     leading: const Icon(Icons.qr_code, color: Colors.deepPurple),
                     title: const Text('Adicionar Créditos / QR Code'),
                     subtitle: const Text('Acessa a tela de leitura de código'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () {
-                      Navigator.pop(context); // fecha modal
-                      _navigateToQrScreen(); // abre tela cheia
+                      Navigator.pop(context);
+                      _navigateToQrScreen();
                     },
                   ),
                   SwitchListTile(
@@ -525,9 +523,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
         title: Row(
           children: [
-            // BOTÃO DE CRÉDITO COM O ÍCONE MAISINHO (+)
             GestureDetector(
-              onTap: _navigateToQrScreen, // Redireciona para a tela do QR Code
+              onTap: _navigateToQrScreen,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(color: Colors.amber.shade800, borderRadius: BorderRadius.circular(12)),
@@ -537,7 +534,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     const SizedBox(width: 4),
                     Text('$_userCredits', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                     const SizedBox(width: 4),
-                    // Ícone de + indicando que pode adicionar créditos
                     const ContainerPlusIcon(),
                   ],
                 ),
