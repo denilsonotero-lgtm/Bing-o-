@@ -1,6 +1,7 @@
-name: bingao
-description: "Projeto Bingao Flutter"
+name: super_bingo
+description: "Aplicativo Super Bingo Flutter com Supabase e QR Code"
 publish_to: 'none'
+
 version: 1.0.0+1
 
 environment:
@@ -9,9 +10,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  supabase_flutter: ^2.8.0
-  flutter_tts: ^4.2.0
-qr_flutter: ^4.1.0 
+  cupertino_icons: ^1.0.8
+  supabase_flutter: ^2.0.0
+  flutter_tts: ^4.0.0
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:
