@@ -1,8 +1,221 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:math';
 
+// ==========================================
+// 1. TELA DEDICADA DE QR CODE / RECARGA
+// ==========================================
+class QrPaymentScreen extends StatelessWidget {
+  final String qrData;
+
+  const QrPaymentScreen({
+    super.key,
+    this.qrData = "https://exemplo.com/dados-para-recarga",
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        title: const Text('Adicionar Créditos / QR Code'),
+        backgroundColor: Colors.deepPurple,
+        foregroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(height: 10),
+            const Icon(Icons.qr_code_scanner, size: 50, color: Colors.deepPurple),
+            const SizedBox(height: 12),
+            const Text(
+              'Escaneie o QR Code abaixo',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Utilize a câmera do celular ou aplicativo de leitura para realizar a operação.',
+              style: TextStyle(color: Colors.black54, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+
+            // Card do QR Code
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    QrImageView(
+                      data: qrData,
+                      version: QrVersions.auto,
+                      size: 240.0,
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Conteúdo do Código / Payload:',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 4),
+                    SelectableText(
+                      qrData,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Botão para simular confirmação ou retornar
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber.shade800,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.arrow_back),
+                label: const Text(
+                  'VOLTAR AO JOGO',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 2. MENU PRINCIPAL (TELA INICIAL)
+// ==========================================
+class MainMenuScreen extends StatelessWidget {
+  const MainMenuScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.deepPurple.shade900,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Icon(
+                Icons.casino,
+                size: 80,
+                color: Colors.amber,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'SUPER BINGO',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 2,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Escolha uma opção para começar',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+              const SizedBox(height: 40),
+
+              // Botão: Entrar na Rodada
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber.shade700,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.play_arrow, size: 28),
+                label: const Text(
+                  'ENTRAR NA RODADA',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Botão: Minhas Cartelas
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white, width: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.style),
+                label: const Text(
+                  'MINHAS CARTELAS (11)',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('11 Cartelas carregadas para o jogo!'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // Botão: Sair
+              TextButton.icon(
+                style: TextButton.styleFrom(foregroundColor: Colors.white60),
+                icon: const Icon(Icons.logout),
+                label: const Text('Sair do App'),
+                onPressed: () async {
+                  await Supabase.instance.client.auth.signOut();
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ==========================================
+// 3. TELA DA RODADA DE BINGO
+// ==========================================
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -11,22 +224,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  // Gerenciamento de Múltiplas Cartelas (11 cartelas)
   final List<List<int>> _allCards = [];
   final List<Set<int>> _markedNumbersPerCard = [];
   final List<String> _cardSerialNumbers = [];
   int _currentCardIndex = 0;
 
-  // Sistema de Economia e Partida
   int _userCredits = 150;
   int _roundNumber = 104;
 
-  // Lógica do Sorteio
   final List<int> _drawnNumbers = [];
   int? _currentDrawnNumber;
   bool _isGloboSpinning = false;
 
-  // Preferências e Interface
   bool _autoMark = false;
   Color _selectedColor = Colors.deepPurple;
   bool _showFullBoard = false;
@@ -35,7 +244,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   bool _soundEffects = true;
   bool _voiceNarrator = true;
 
-  // Recursos Visuais e Áudio
   late AnimationController _globoController;
   final FlutterTts _flutterTts = FlutterTts();
 
@@ -68,6 +276,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void _initTTS() async {
     await _flutterTts.setLanguage("pt-BR");
     await _flutterTts.setSpeechRate(0.5);
+  }
+
+  // Método auxiliar para navegar até a Tela do QR Code
+  void _navigateToQrScreen() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const QrPaymentScreen()),
+    );
   }
 
   String _generateSerialNumber(int index) {
@@ -199,11 +415,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     '🎉 B I N G O ! 🎉',
                     style: TextStyle(
                       fontSize: 34,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.bold,
                       color: Colors.amberAccent,
-                      shadows: [
-                        Shadow(blurRadius: 10, color: Colors.orange, offset: Offset(0, 4))
-                      ],
                     ),
                   ),
                 );
@@ -247,6 +460,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 children: [
                   const Text('Configurações & Perfil', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   const Divider(),
+                  // SUBMENU PARA IR PARA A TELA DE QR CODE
+                  ListTile(
+                    leading: const Icon(Icons.qr_code, color: Colors.deepPurple),
+                    title: const Text('Adicionar Créditos / QR Code'),
+                    subtitle: const Text('Acessa a tela de leitura de código'),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.pop(context); // fecha modal
+                      _navigateToQrScreen(); // abre tela cheia
+                    },
+                  ),
                   SwitchListTile(
                     title: const Text('Modo Escuro (Dark Theme)'),
                     value: _isDarkMode,
@@ -295,17 +519,28 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       appBar: AppBar(
         backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.deepPurple,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: Colors.amber.shade800, borderRadius: BorderRadius.circular(12)),
-              child: Row(
-                children: [
-                  const Icon(Icons.monetization_on, size: 16, color: Colors.white),
-                  const SizedBox(width: 4),
-                  Text('$_userCredits', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                ],
+            // BOTÃO DE CRÉDITO COM O ÍCONE MAISINHO (+)
+            GestureDetector(
+              onTap: _navigateToQrScreen, // Redireciona para a tela do QR Code
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(color: Colors.amber.shade800, borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.monetization_on, size: 16, color: Colors.white),
+                    const SizedBox(width: 4),
+                    Text('$_userCredits', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                    const SizedBox(width: 4),
+                    // Ícone de + indicando que pode adicionar créditos
+                    const ContainerPlusIcon(),
+                  ],
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -325,10 +560,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             icon: const Icon(Icons.settings),
             onPressed: _openSettingsModal,
           ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async => await Supabase.instance.client.auth.signOut(),
-          ),
         ],
       ),
       body: Padding(
@@ -343,7 +574,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               child: Row(
                 children: [
-                  // GLOBO ILUSTRADO VETORIAL
                   BingoCageWidget(
                     isSpinning: _isGloboSpinning,
                     controller: _globoController,
@@ -665,7 +895,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   }
 }
 
-// COMPONENTE DO GLOBO DE BINGO VETORIAL
+// ÍCONE DE MAISINHO NO BOTÃO DE CRÉDITO
+class ContainerPlusIcon extends StatelessWidget {
+  const ContainerPlusIcon({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white24,
+        shape: BoxShape.circle,
+      ),
+      padding: const EdgeInsets.all(2),
+      child: const Icon(Icons.add, size: 12, color: Colors.white),
+    );
+  }
+}
+
+// --- DESENHO VETORIAL DO GLOBO ---
 class BingoCageWidget extends StatelessWidget {
   final bool isSpinning;
   final AnimationController controller;
@@ -712,17 +959,14 @@ class BingoCagePainter extends CustomPainter {
       ..color = Colors.amber.shade900
       ..style = PaintingStyle.fill;
 
-    // Base inferior
     canvas.drawRect(
       Rect.fromLTWH(size.width * 0.15, size.height - 6, size.width * 0.7, 5),
       basePaint,
     );
 
-    // Hastes laterais
     canvas.drawLine(Offset(size.width * 0.2, size.height - 6), center, standPaint);
     canvas.drawLine(Offset(size.width * 0.8, size.height - 6), center, standPaint);
 
-    // Gaiola Giratória
     canvas.save();
     canvas.translate(center.dx, center.dy);
     canvas.rotate(angle);
@@ -739,12 +983,10 @@ class BingoCagePainter extends CustomPainter {
     canvas.drawCircle(Offset.zero, radius, cageFill);
     canvas.drawCircle(Offset.zero, radius, cagePaint);
 
-    // Arames internos
     canvas.drawLine(Offset(-radius, 0), Offset(radius, 0), cagePaint);
     canvas.drawLine(Offset(0, -radius), Offset(0, radius), cagePaint);
     canvas.drawOval(Rect.fromLTRB(-radius * 0.5, -radius, radius * 0.5, radius), cagePaint);
 
-    // Bolinhas internas
     final ballColors = [Colors.red, Colors.blue, Colors.green, Colors.amber];
     final ballPositions = [
       const Offset(-7, -5),
@@ -763,7 +1005,6 @@ class BingoCagePainter extends CustomPainter {
 
     canvas.restore();
 
-    // Manivela
     final handlePaint = Paint()
       ..color = Colors.amber.shade600
       ..strokeWidth = 2.5
