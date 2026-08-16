@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  supabase_flutter: ^2.8.0
+  flutter_tts: ^4.2.0 # Biblioteca para o narrador cantar as pedras
+
 
   cupertino_icons: ^1.0.8
   supabase_flutter: ^2.0.0
