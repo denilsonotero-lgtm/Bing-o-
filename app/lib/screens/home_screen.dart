@@ -343,22 +343,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               child: Row(
                 children: [
-                  RotationTransition(
-                    turns: _globoController,
-                    child: Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.amber, width: 2.5),
-                        gradient: SweepGradient(
-                          colors: [Colors.grey.shade400, Colors.grey.shade800, Colors.grey.shade400],
-                        ),
-                      ),
-                      child: const Center(
-                        child: Icon(Icons.refresh, color: Colors.amber, size: 30),
-                      ),
-                    ),
+                  // GLOBO ILUSTRADO VETORIAL
+                  BingoCageWidget(
+                    isSpinning: _isGloboSpinning,
+                    controller: _globoController,
                   ),
                   const SizedBox(width: 10),
                   Container(
@@ -674,5 +662,121 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       ),
     );
+  }
+}
+
+// COMPONENTE DO GLOBO DE BINGO VETORIAL
+class BingoCageWidget extends StatelessWidget {
+  final bool isSpinning;
+  final AnimationController controller;
+
+  const BingoCageWidget({
+    super.key,
+    required this.isSpinning,
+    required this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 65,
+      height: 65,
+      child: AnimatedBuilder(
+        animation: controller,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: BingoCagePainter(angle: controller.value * 2 * pi),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class BingoCagePainter extends CustomPainter {
+  final double angle;
+
+  BingoCagePainter({required this.angle});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2 - 2);
+    final radius = size.width * 0.32;
+
+    final standPaint = Paint()
+      ..color = Colors.amber.shade700
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+
+    final basePaint = Paint()
+      ..color = Colors.amber.shade900
+      ..style = PaintingStyle.fill;
+
+    // Base inferior
+    canvas.drawRect(
+      Rect.fromLTWH(size.width * 0.15, size.height - 6, size.width * 0.7, 5),
+      basePaint,
+    );
+
+    // Hastes laterais
+    canvas.drawLine(Offset(size.width * 0.2, size.height - 6), center, standPaint);
+    canvas.drawLine(Offset(size.width * 0.8, size.height - 6), center, standPaint);
+
+    // Gaiola Giratória
+    canvas.save();
+    canvas.translate(center.dx, center.dy);
+    canvas.rotate(angle);
+
+    final cagePaint = Paint()
+      ..color = Colors.grey.shade300
+      ..strokeWidth = 1.5
+      ..style = PaintingStyle.stroke;
+
+    final cageFill = Paint()
+      ..color = Colors.white.withOpacity(0.15)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset.zero, radius, cageFill);
+    canvas.drawCircle(Offset.zero, radius, cagePaint);
+
+    // Arames internos
+    canvas.drawLine(Offset(-radius, 0), Offset(radius, 0), cagePaint);
+    canvas.drawLine(Offset(0, -radius), Offset(0, radius), cagePaint);
+    canvas.drawOval(Rect.fromLTRB(-radius * 0.5, -radius, radius * 0.5, radius), cagePaint);
+
+    // Bolinhas internas
+    final ballColors = [Colors.red, Colors.blue, Colors.green, Colors.amber];
+    final ballPositions = [
+      const Offset(-7, -5),
+      const Offset(5, 3),
+      const Offset(-2, 7),
+      const Offset(7, -7),
+    ];
+
+    for (int i = 0; i < ballPositions.length; i++) {
+      canvas.drawCircle(
+        ballPositions[i],
+        3.0,
+        Paint()..color = ballColors[i],
+      );
+    }
+
+    canvas.restore();
+
+    // Manivela
+    final handlePaint = Paint()
+      ..color = Colors.amber.shade600
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+
+    final handleX = center.dx + radius + 3;
+    canvas.drawLine(center, Offset(handleX, center.dy), handlePaint);
+    canvas.drawLine(Offset(handleX, center.dy), Offset(handleX, center.dy + 8), handlePaint);
+    canvas.drawCircle(Offset(handleX, center.dy + 8), 2.5, Paint()..color = Colors.red);
+  }
+
+  @override
+  bool shouldRepaint(covariant BingoCagePainter oldDelegate) {
+    return oldDelegate.angle != angle;
   }
 }
