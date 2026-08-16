@@ -11,7 +11,19 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<int> _cardNumbers = [];
-  final Set<int> _markedNumbers = {}; // Armazena os números marcados pelo jogador
+  final Set<int> _markedNumbers = {};
+  bool _autoMark = false; // Se a marcação automática está ligada
+  Color _selectedColor = Colors.deepPurple; // Cor padrão da marcação
+  bool _isWinner = false; // Estado do prêmio
+
+  // Cores disponíveis para a marcação
+  final List<Color> _availableColors = [
+    Colors.deepPurple,
+    Colors.red,
+    Colors.amber.shade700,
+    Colors.green,
+    Colors.blue,
+  ];
 
   List<int> _generateCard() {
     final List<int> allNumbers = List.generate(75, (i) => i + 1);
@@ -24,7 +36,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void _generateNewCard() {
     setState(() {
       _cardNumbers = _generateCard();
-      _markedNumbers.clear(); // Limpa as marcações ao gerar nova cartela
+      _markedNumbers.clear();
+      _isWinner = false;
     });
   }
 
@@ -35,7 +48,56 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         _markedNumbers.add(number);
       }
+      _checkWinCondition();
     });
+  }
+
+  // Validação em segundo plano (O sistema sempre conta para você)
+  void _checkWinCondition() {
+    // Exemplo de regra: se o jogador marcou 5 ou mais pedras (ou via auto-mark)
+    // Aqui você conectará com os números sorteados da sala do Supabase
+    if (_markedNumbers.length >= 24 && !_isWinner) {
+      setState(() => _isWinner = true);
+      _showBingoDialog();
+    }
+  }
+
+  void _showBingoDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.amber.shade100,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Center(
+          child: Text(
+            '🎉 BINGO! 🎉',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+          ),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.emoji_events, size: 80, color: Colors.amber),
+            SizedBox(height: 10),
+            Text(
+              'Parabéns! Sua cartela foi premiada!',
+              textAlign: TextAlign.Center,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('RECEBER PRÊMIO', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -46,8 +108,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Bingão'),
@@ -62,9 +122,60 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text('Bem-vindo, Jogador!', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            
+            // Painel de Configurações de Marcação (Cores + Automático)
+            Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Seleção de Cores
+                    Row(
+                      children: _availableColors.map((color) {
+                        final isSelected = _selectedColor == color;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedColor = color),
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 4),
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: isSelected
+                                  ? Border.all(color: Colors.black, width: 3)
+                                  : null,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    
+                    // Switch de Marcação Automática
+                    Row(
+                      children: [
+                        const Text('Auto', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Switch(
+                          value: _autoMark,
+                          activeColor: _selectedColor,
+                          onChanged: (val) {
+                            setState(() {
+                              _autoMark = val;
+                              // Se ligar a auto-marcação, ele pode marcar automaticamente as pedras
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Grade da Cartela
             Expanded(
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -74,11 +185,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 itemCount: 25,
                 itemBuilder: (context, index) {
-                  // O espaço central é sempre "marcado"
                   if (index == 12) {
                     return Container(
-                      decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(8)),
-                      child: const Center(child: Text('FREE', style: TextStyle(fontWeight: FontWeight.bold))),
+                      decoration: BoxDecoration(
+                        color: Colors.amber,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Center(
+                        child: Text('FREE', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
                     );
                   }
 
@@ -90,8 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     onTap: () => _toggleMark(number),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isMarked ? Colors.deepPurple : Colors.deepPurple.shade50,
-                        border: Border.all(color: Colors.deepPurple, width: 2),
+                        color: isMarked ? _selectedColor : _selectedColor.withOpacity(0.1),
+                        border: Border.all(color: _selectedColor, width: 2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Center(
@@ -100,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: isMarked ? Colors.white : Colors.deepPurple,
+                            color: isMarked ? Colors.white : _selectedColor,
                           ),
                         ),
                       ),
@@ -109,7 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
+
             ElevatedButton.icon(
               onPressed: _generateNewCard,
               icon: const Icon(Icons.refresh),
