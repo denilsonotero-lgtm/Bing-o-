@@ -11,9 +11,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<int> _cardNumbers = [];
-  bool _isLoading = false;
+  final Set<int> _markedNumbers = {}; // Armazena os números marcados pelo jogador
 
-  // Gerador de cartela com 24 números aleatórios entre 1 e 75
   List<int> _generateCard() {
     final List<int> allNumbers = List.generate(75, (i) => i + 1);
     allNumbers.shuffle(Random());
@@ -25,6 +24,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void _generateNewCard() {
     setState(() {
       _cardNumbers = _generateCard();
+      _markedNumbers.clear(); // Limpa as marcações ao gerar nova cartela
+    });
+  }
+
+  void _toggleMark(int number) {
+    setState(() {
+      if (_markedNumbers.contains(number)) {
+        _markedNumbers.remove(number);
+      } else {
+        _markedNumbers.add(number);
+      }
     });
   }
 
@@ -40,13 +50,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bingão - Minha Cartela'),
+        title: const Text('Bingão'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
-            },
+            onPressed: () async => await Supabase.instance.client.auth.signOut(),
           ),
         ],
       ),
@@ -54,13 +62,9 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
-              'Bem-vindo, ${user?.email ?? "Jogador"}!',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            Text('Bem-vindo, Jogador!', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 20),
             
-            // Grid da Cartela de Bingo
             Expanded(
               child: GridView.builder(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -68,39 +72,36 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 8,
                 ),
-                itemCount: 25, // 24 números + 1 espaço BINGO livre no meio
+                itemCount: 25,
                 itemBuilder: (context, index) {
+                  // O espaço central é sempre "marcado"
                   if (index == 12) {
                     return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'FREE',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                        ),
-                      ),
+                      decoration: BoxDecoration(color: Colors.amber, borderRadius: BorderRadius.circular(8)),
+                      child: const Center(child: Text('FREE', style: TextStyle(fontWeight: FontWeight.bold))),
                     );
                   }
 
                   final numberIndex = index > 12 ? index - 1 : index;
-                  final number = _cardNumbers.isNotEmpty ? _cardNumbers[numberIndex] : 0;
+                  final number = _cardNumbers[numberIndex];
+                  final isMarked = _markedNumbers.contains(number);
 
-                  return Container(
-                    decoration: BoxDecoration(
-                      color: Colors.deepPurple.shade50,
-                      border: Border.all(color: Colors.deepPurple),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '$number',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple,
+                  return GestureDetector(
+                    onTap: () => _toggleMark(number),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isMarked ? Colors.deepPurple : Colors.deepPurple.shade50,
+                        border: Border.all(color: Colors.deepPurple, width: 2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$number',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isMarked ? Colors.white : Colors.deepPurple,
+                          ),
                         ),
                       ),
                     ),
@@ -108,8 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
             ),
-
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _generateNewCard,
               icon: const Icon(Icons.refresh),
