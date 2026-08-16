@@ -1,101 +1,121 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:math';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<int> _cardNumbers = [];
+  bool _isLoading = false;
+
+  // Gerador de cartela com 24 números aleatórios entre 1 e 75
+  List<int> _generateCard() {
+    final List<int> allNumbers = List.generate(75, (i) => i + 1);
+    allNumbers.shuffle(Random());
+    final card = allNumbers.take(24).toList();
+    card.sort();
+    return card;
+  }
+
+  void _generateNewCard() {
+    setState(() {
+      _cardNumbers = _generateCard();
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _generateNewCard();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final user = Supabase.instance.client.auth.currentUser;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          '🎱 BINGÃO',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
+        title: const Text('Bingão - Minha Cartela'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              await Supabase.instance.client.auth.signOut();
+            },
           ),
-        ),
-        centerTitle: true,
+        ],
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-
-              const Text(
-                'Bem-vindo ao BINGÃO!',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text(
+              'Bem-vindo, ${user?.email ?? "Jogador"}!',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            
+            // Grid da Cartela de Bingo
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 5,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
                 ),
-              ),
-
-              const SizedBox(height: 10),
-
-              Text(
-                'Acompanhe suas rodadas e cartelas.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurfaceVariant,
-                ),
-              ),
-
-              const SizedBox(height: 35),
-
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      const Text(
-                        '🎱',
-                        style: TextStyle(fontSize: 60),
+                itemCount: 25, // 24 números + 1 espaço BINGO livre no meio
+                itemBuilder: (context, index) {
+                  if (index == 12) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.amber,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'Nenhuma rodada disponível',
-                        style: TextStyle(
+                      child: const Center(
+                        child: Text(
+                          'FREE',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                      ),
+                    );
+                  }
+
+                  final numberIndex = index > 12 ? index - 1 : index;
+                  final number = _cardNumbers.isNotEmpty ? _cardNumbers[numberIndex] : 0;
+
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.shade50,
+                      border: Border.all(color: Colors.deepPurple),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$number',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Quando houver uma rodada, ela aparecerá aqui.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
+            ),
 
-              const SizedBox(height: 25),
-
-              FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.confirmation_number),
-                label: const Text('Minhas cartelas'),
-              ),
-
-              const SizedBox(height: 12),
-
-              OutlinedButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.history),
-                label: const Text('Histórico'),
-              ),
-            ],
-          ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _generateNewCard,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Gerar Nova Cartela'),
+            ),
+          ],
         ),
       ),
     );
