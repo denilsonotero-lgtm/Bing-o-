@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../app_routes.dart';
+import '../player_service.dart';
 import 'live_round_screen.dart';
 import 'my_cards_screen.dart';
 import 'settings_screen.dart';
@@ -10,12 +10,10 @@ class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
 
   @override
-  State<MainDashboardScreen> createState() =>
-      _MainDashboardScreenState();
+  State<MainDashboardScreen> createState() => _MainDashboardScreenState();
 }
 
-class _MainDashboardScreenState
-    extends State<MainDashboardScreen> {
+class _MainDashboardScreenState extends State<MainDashboardScreen> {
   int selectedIndex = 0;
 
   final List<Widget> pages = const [
@@ -66,14 +64,53 @@ class _MainDashboardScreenState
   }
 }
 
-class _DashboardHome extends StatelessWidget {
+class _DashboardHome extends StatefulWidget {
   const _DashboardHome();
 
   @override
-  Widget build(BuildContext context) {
-    final user = Supabase.instance.client.auth.currentUser;
-    final userEmail = user?.email ?? 'Jogador';
+  State<_DashboardHome> createState() => _DashboardHomeState();
+}
 
+class _DashboardHomeState extends State<_DashboardHome> {
+  final PlayerService playerService = PlayerService();
+  
+  String displayName = 'Jogador';
+  int virtualCredits = 0;
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+
+  Future<void> loadUserData() async {
+    try {
+      final profile = await playerService.getCurrentPlayerProfile();
+      if (profile != null && mounted) {
+        setState(() {
+          displayName = profile['display_name'] ?? profile['username'] ?? 'Jogador';
+          virtualCredits = profile['virtual_credits'] ?? 0;
+          loading = false;
+        });
+      } else if (mounted) {
+        final user = Supabase.instance.client.auth.currentUser;
+        setState(() {
+          displayName = user?.email ?? 'Jogador';
+          loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -87,7 +124,7 @@ class _DashboardHome extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Olá, $userEmail! 👋',
+                        'Olá, $displayName! 👋',
                         style: const TextStyle(fontSize: 16),
                       ),
                       const SizedBox(height: 4),
@@ -118,19 +155,25 @@ class _DashboardHome extends StatelessWidget {
                       size: 36,
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Créditos virtuais'),
-                          SizedBox(height: 4),
-                          Text(
-                            '150',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          const Text('Créditos virtuais'),
+                          const SizedBox(height: 4),
+                          loading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(
+                                  '$virtualCredits',
+                                  style: const TextStyle(
+                                    fontSize: 28,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ],
                       ),
                     ),
