@@ -18,8 +18,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   int _currentCardIndex = 0;
 
   // Sistema de Economia e Partida
-  int _userCredits = 150; // Saldo de moedas/créditos
-  int _roundNumber = 104; // Número da rodada atual
+  int _userCredits = 150;
+  int _roundNumber = 104;
 
   // Lógica do Sorteio
   final List<int> _drawnNumbers = [];
@@ -136,7 +136,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  // Trava de Segurança: Só permite marcar se o número já foi sorteado
   void _toggleMarkUser(int cardIndex, int number) {
     if (!_drawnNumbers.contains(number)) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -222,7 +221,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
               onPressed: () {
-                setState(() => _userCredits += 50); // Bônus ao ganhar
+                setState(() => _userCredits += 50);
                 Navigator.pop(context);
               },
               child: const Text('VALIDAR PRÊMIO', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
@@ -238,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        return StatefulWidget(
+        return StatefulBuilder(
           builder: (context, setModalState) {
             return Container(
               padding: const EdgeInsets.all(20),
@@ -283,13 +282,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    // Lista do histórico sem duplicar o número que já está no destaque
     final recentDrawn = _drawnNumbers.length > 1
         ? _drawnNumbers.sublist(0, _drawnNumbers.length - 1).reversed.toList()
         : <int>[];
     
     final rankedIndices = _getRankedCardIndices();
-    final bgColor = _isDarkMode ? Colors.grey.shade950 : Colors.grey.shade50;
+    final bgColor = _isDarkMode ? const Color(0xFF121212) : Colors.grey.shade50;
     final textColor = _isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
@@ -337,7 +335,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(
           children: [
-            // 1. ÁREA DO GLOBO MANUAL E BOLA EM DESTAQUE
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -346,7 +343,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               child: Row(
                 children: [
-                  // Globo de Metal Animado
                   RotationTransition(
                     turns: _globoController,
                     child: Container(
@@ -365,8 +361,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
                   const SizedBox(width: 10),
-
-                  // Bola Sorteada em Destaque
                   Container(
                     width: 55,
                     height: 55,
@@ -385,8 +379,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   ),
                   const SizedBox(width: 10),
-
-                  // Histórico Horizontal (Da Direita para a Esquerda sem duplicatas)
                   Expanded(
                     child: SizedBox(
                       height: 45,
@@ -418,8 +410,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
             const SizedBox(height: 6),
-
-            // 2. PAINEL DE 1 A 75
             if (_showFullBoard)
               Container(
                 height: 140,
@@ -459,8 +449,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   },
                 ),
               ),
-
-            // 3. SELETOR DE COR E MODO AUTOMÁTICO
             Card(
               elevation: 1,
               color: _isDarkMode ? Colors.grey.shade900 : Colors.white,
@@ -501,8 +489,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
             ),
             const SizedBox(height: 6),
-
-            // 4. CARTELAS (DESLIZANTE OU GRADE RANKEADA)
             Expanded(
               child: _viewGridMode
                   ? GridView.builder(
@@ -666,7 +652,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
             const SizedBox(height: 6),
 
-            // SIMULADOR DO GLOBO DE SORTEIO
             Row(
               children: [
                 Expanded(
