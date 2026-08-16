@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     '🎉 B I N G O ! 🎉',
                     style: TextStyle(
                       fontSize: 34,
-                      fontWeight: FontWeight.black,
+                      fontWeight: FontWeight.w900,
                       color: Colors.amberAccent,
                       shadows: [
                         Shadow(blurRadius: 10, color: Colors.orange, offset: Offset(0, 4))
