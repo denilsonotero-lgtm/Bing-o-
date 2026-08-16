@@ -11,22 +11,29 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  // Gerenciamento de Múltiplas Cartelas (até 11)
+  // Gerenciamento de Múltiplas Cartelas (11 cartelas)
   final List<List<int>> _allCards = [];
   final List<Set<int>> _markedNumbersPerCard = [];
   final List<String> _cardSerialNumbers = [];
   int _currentCardIndex = 0;
+
+  // Sistema de Economia e Partida
+  int _userCredits = 150; // Saldo de moedas/créditos
+  int _roundNumber = 104; // Número da rodada atual
 
   // Lógica do Sorteio
   final List<int> _drawnNumbers = [];
   int? _currentDrawnNumber;
   bool _isGloboSpinning = false;
 
-  // Configurações do Jogador
+  // Preferências e Interface
   bool _autoMark = false;
   Color _selectedColor = Colors.deepPurple;
   bool _showFullBoard = false;
   bool _viewGridMode = false;
+  bool _isDarkMode = false;
+  bool _soundEffects = true;
+  bool _voiceNarrator = true;
 
   // Recursos Visuais e Áudio
   late AnimationController _globoController;
@@ -46,9 +53,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _initTTS();
     _globoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1000),
     );
-    _generateMultipleCards(11); // Gera 11 cartelas com números de série
+    _generateMultipleCards(11);
   }
 
   @override
@@ -63,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     await _flutterTts.setSpeechRate(0.5);
   }
 
-  // Gera número de série identificador (ex: #BG-84920)
   String _generateSerialNumber(int index) {
     final random = Random().nextInt(89999) + 10000;
     return '#BG-${index + 1}0$random';
@@ -94,14 +100,13 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
   }
 
-  // Simulação de recebimento de bola em tempo real (Com Globo, Narrador e Destaque)
   void _drawNextNumberSimulated() async {
     if (_drawnNumbers.length >= 75 || _isGloboSpinning) return;
 
     setState(() => _isGloboSpinning = true);
     _globoController.repeat();
 
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1200));
 
     final remaining = List.generate(75, (i) => i + 1)
         .where((n) => !_drawnNumbers.contains(n))
@@ -116,7 +121,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       _currentDrawnNumber = nextNumber;
       _drawnNumbers.add(nextNumber);
 
-      // Marcação automática em TODAS as 11 cartelas se a opção estiver ligada
       if (_autoMark) {
         for (int i = 0; i < _allCards.length; i++) {
           if (_allCards[i].contains(nextNumber)) {
@@ -127,11 +131,34 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       _checkWinCondition();
     });
 
-    // Narrador canta o número sorteado
-    await _flutterTts.speak('Número $nextNumber');
+    if (_voiceNarrator) {
+      await _flutterTts.speak('Número $nextNumber');
+    }
   }
 
-  // Rankeamento de Cartelas (ordena da que tem mais acertos para a que tem menos)
+  // Trava de Segurança: Só permite marcar se o número já foi sorteado
+  void _toggleMarkUser(int cardIndex, int number) {
+    if (!_drawnNumbers.contains(number)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Esta pedra ainda não foi sorteada!'),
+          duration: Duration(milliseconds: 800),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      final markedSet = _markedNumbersPerCard[cardIndex];
+      if (markedSet.contains(number)) {
+        markedSet.remove(number);
+      } else {
+        markedSet.add(number);
+      }
+      _checkWinCondition();
+    });
+  }
+
   List<int> _getRankedCardIndices() {
     List<int> indices = List.generate(_allCards.length, (i) => i);
     indices.sort((a, b) {
@@ -152,7 +179,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
   }
 
-  // Modal festivo com palavra BINGO animada e efeitos
   void _showBingoDialog(String serial) {
     showDialog(
       context: context,
@@ -195,7 +221,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                setState(() => _userCredits += 50); // Bônus ao ganhar
+                Navigator.pop(context);
+              },
               child: const Text('VALIDAR PRÊMIO', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
             )
           ],
@@ -204,24 +233,99 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
+  void _openSettingsModal() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return StatefulWidget(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Configurações & Perfil', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  const Divider(),
+                  SwitchListTile(
+                    title: const Text('Modo Escuro (Dark Theme)'),
+                    value: _isDarkMode,
+                    onChanged: (val) {
+                      setState(() => _isDarkMode = val);
+                      setModalState(() {});
+                    },
+                  ),
+                  SwitchListTile(
+                    title: const Text('Efeitos Sonoros'),
+                    value: _soundEffects,
+                    onChanged: (val) {
+                      setState(() => _soundEffects = val);
+                      setModalState(() {});
+                    },
+                  ),
+                  SwitchListTile(
+                    title: const Text('Narrador de Voz'),
+                    value: _voiceNarrator,
+                    onChanged: (val) {
+                      setState(() => _voiceNarrator = val);
+                      setModalState(() {});
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final recentDrawn = _drawnNumbers.reversed.toList();
+    // Lista do histórico sem duplicar o número que já está no destaque
+    final recentDrawn = _drawnNumbers.length > 1
+        ? _drawnNumbers.sublist(0, _drawnNumbers.length - 1).reversed.toList()
+        : <int>[];
+    
     final rankedIndices = _getRankedCardIndices();
+    final bgColor = _isDarkMode ? Colors.grey.shade950 : Colors.grey.shade50;
+    final textColor = _isDarkMode ? Colors.white : Colors.black;
 
     return Scaffold(
+      backgroundColor: bgColor,
       appBar: AppBar(
-        title: const Text('Bingão'),
+        backgroundColor: _isDarkMode ? Colors.grey.shade900 : Colors.deepPurple,
+        foregroundColor: Colors.white,
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: Colors.amber.shade800, borderRadius: BorderRadius.circular(12)),
+              child: Row(
+                children: [
+                  const Icon(Icons.monetization_on, size: 16, color: Colors.white),
+                  const SizedBox(width: 4),
+                  Text('$_userCredits', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text('Rodada #$_roundNumber', style: const TextStyle(fontSize: 14)),
+          ],
+        ),
         actions: [
           IconButton(
             icon: Icon(_viewGridMode ? Icons.view_carousel : Icons.grid_view),
-            tooltip: 'Alternar Visão das Cartelas',
             onPressed: () => setState(() => _viewGridMode = !_viewGridMode),
           ),
           IconButton(
             icon: Icon(_showFullBoard ? Icons.grid_off : Icons.grid_on),
-            tooltip: 'Tabela 1-75',
             onPressed: () => setState(() => _showFullBoard = !_showFullBoard),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: _openSettingsModal,
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -233,7 +337,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(
           children: [
-            // 1. ÁREA DO GLOBO E BOLA EM DESTAQUE DENTRO DO PAINEL DAS ÚLTIMAS BOLAS
+            // 1. ÁREA DO GLOBO MANUAL E BOLA EM DESTAQUE
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -242,18 +346,22 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
               child: Row(
                 children: [
-                  // Globo Giratório Animado
+                  // Globo de Metal Animado
                   RotationTransition(
                     turns: _globoController,
                     child: Container(
-                      width: 50,
-                      height: 50,
+                      width: 52,
+                      height: 52,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.amber, width: 3),
-                        color: Colors.deepPurple.shade700,
+                        border: Border.all(color: Colors.amber, width: 2.5),
+                        gradient: SweepGradient(
+                          colors: [Colors.grey.shade400, Colors.grey.shade800, Colors.grey.shade400],
+                        ),
                       ),
-                      child: const Icon(Icons.casino, color: Colors.amber, size: 28),
+                      child: const Center(
+                        child: Icon(Icons.refresh, color: Colors.amber, size: 30),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -264,7 +372,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     height: 55,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _currentDrawnNumber != null ? Colors.amber : Colors.grey.shade700,
+                      color: _currentDrawnNumber != null ? Colors.amber : Colors.grey.shade800,
                       boxShadow: _currentDrawnNumber != null
                           ? [BoxShadow(color: Colors.amber.withOpacity(0.8), blurRadius: 10, spreadRadius: 2)]
                           : null,
@@ -278,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   ),
                   const SizedBox(width: 10),
 
-                  // Histórico Horizontal (Direita para a Esquerda com bolinhas redondas)
+                  // Histórico Horizontal (Da Direita para a Esquerda sem duplicatas)
                   Expanded(
                     child: SizedBox(
                       height: 45,
@@ -314,10 +422,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             // 2. PAINEL DE 1 A 75
             if (_showFullBoard)
               Container(
-                height: 150,
+                height: 140,
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: _isDarkMode ? Colors.grey.shade900 : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.grey.shade300),
                 ),
@@ -334,7 +442,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
                     return Container(
                       decoration: BoxDecoration(
-                        color: isDrawn ? Colors.amber : Colors.white,
+                        color: isDrawn ? Colors.amber : (_isDarkMode ? Colors.grey.shade800 : Colors.white),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: Center(
@@ -343,6 +451,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           style: TextStyle(
                             fontSize: 8,
                             fontWeight: isDrawn ? FontWeight.bold : FontWeight.normal,
+                            color: isDrawn ? Colors.black : textColor,
                           ),
                         ),
                       ),
@@ -351,9 +460,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
 
-            // 3. BARRA DE CONTROLE (SELETOR DE COR + AUTO)
+            // 3. SELETOR DE COR E MODO AUTOMÁTICO
             Card(
               elevation: 1,
+              color: _isDarkMode ? Colors.grey.shade900 : Colors.white,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 child: Row(
@@ -370,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             decoration: BoxDecoration(
                               color: color,
                               shape: BoxShape.circle,
-                              border: _selectedColor == color ? Border.all(color: Colors.black, width: 2) : null,
+                              border: _selectedColor == color ? Border.all(color: textColor, width: 2) : null,
                             ),
                           ),
                         );
@@ -378,7 +488,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                     Row(
                       children: [
-                        const Text('Auto', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        Text('Auto', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: textColor)),
                         Switch(
                           value: _autoMark,
                           activeColor: _selectedColor,
@@ -392,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ),
             const SizedBox(height: 6),
 
-            // 4. EXIBIÇÃO DAS CARTELAS (DESLIZANTE OU GRADE RANKEADA)
+            // 4. CARTELAS (DESLIZANTE OU GRADE RANKEADA)
             Expanded(
               child: _viewGridMode
                   ? GridView.builder(
@@ -419,7 +529,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             decoration: BoxDecoration(
                               border: Border.all(color: Colors.deepPurple, width: 2),
                               borderRadius: BorderRadius.circular(12),
-                              color: Colors.white,
+                              color: _isDarkMode ? Colors.grey.shade900 : Colors.white,
                             ),
                             child: Column(
                               children: [
@@ -449,7 +559,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                           '$number',
                                           style: TextStyle(
                                             fontSize: 9,
-                                            color: isMarked ? Colors.red : Colors.black,
+                                            color: isMarked ? Colors.red : textColor,
                                             fontWeight: isMarked ? FontWeight.bold : FontWeight.normal,
                                           ),
                                         ),
@@ -475,10 +585,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.deepPurple, width: 3),
                             borderRadius: BorderRadius.circular(16),
+                            color: _isDarkMode ? Colors.grey.shade900 : Colors.white,
                           ),
                           child: Column(
                             children: [
-                              // Identificação da Cartela (Ticket)
                               Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
@@ -501,7 +611,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 ),
                               ),
 
-                              // Grid da Cartela
                               Expanded(
                                 child: Padding(
                                   padding: const EdgeInsets.all(6.0),
@@ -525,16 +634,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                       final isMarked = marked.contains(number);
 
                                       return GestureDetector(
-                                        onTap: () {
-                                          setState(() {
-                                            if (marked.contains(number)) {
-                                              marked.remove(number);
-                                            } else {
-                                              marked.add(number);
-                                            }
-                                            _checkWinCondition();
-                                          });
-                                        },
+                                        onTap: () => _toggleMarkUser(cardIndex, number),
                                         child: Container(
                                           decoration: BoxDecoration(
                                             color: isMarked ? _selectedColor : _selectedColor.withOpacity(0.08),
@@ -566,14 +666,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
             const SizedBox(height: 6),
 
-            // BOTÃO DE SIMULAÇÃO DO SORTEIO (Para testar Globo + Narração)
+            // SIMULADOR DO GLOBO DE SORTEIO
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: _drawNextNumberSimulated,
                     icon: const Icon(Icons.play_arrow),
-                    label: const Text('Simular Próxima Bola'),
+                    label: const Text('Girar Globo & Sortear'),
                     style: ElevatedButton.styleFrom(backgroundColor: Colors.amber.shade800, foregroundColor: Colors.white),
                   ),
                 ),
