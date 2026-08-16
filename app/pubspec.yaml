@@ -1,28 +1,21 @@
 name: bingao
-description: Aplicativo do jogador do BINGÃO.
-publish_to: "none"
-
+description: "Projeto Bingao Flutter"
+publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
   supabase_flutter: ^2.8.0
-  flutter_tts: ^4.2.0 # Biblioteca para o narrador cantar as pedras
-
-
-  cupertino_icons: ^1.0.8
-  supabase_flutter: ^2.0.0
+  flutter_tts: ^4.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  supabase_flutter: ^2.10.0
- 
-  flutter_lints: ^5.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
