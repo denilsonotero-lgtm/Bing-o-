@@ -22,8 +22,14 @@ jobs:
         with:
           channel: 'stable'
 
+      - name: Recreate Android Project Files
+        run: flutter create . --platforms=android
+        working-directory: app
+
       - name: Install dependencies
         run: flutter pub get
+        working-directory: app
 
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
+        working-directory: app
